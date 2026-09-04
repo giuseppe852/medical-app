@@ -1555,3 +1555,4 @@ st.divider()
 st.markdown(
     '<div class="footer">Gestione Clinica · Sistema informativo clinico · v1.0</div>',
     unsafe_allow_html=True
+)
