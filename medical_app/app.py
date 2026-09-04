@@ -1,7 +1,8 @@
 import streamlit as st
 import sqlite3
+import pandas as pd
+from datetime import datetime, date
 import os
-from datetime import date
 
 # ============================================================
 # CONFIGURAZIONE
@@ -18,175 +19,252 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "clinica.db")
 
 
 # ============================================================
-# STILE PROFESSIONALE
+# STILE GRAFICO
 # ============================================================
 
 st.markdown("""
 <style>
-
+/* ---------- BASE ---------- */
 .stApp {
-    background-color: #F4F6F9;
+    background: #F4F6F9;
 }
 
-.block-container {
-    max-width: 1400px;
+.main .block-container {
     padding-top: 2rem;
     padding-bottom: 3rem;
+    max-width: 1450px;
 }
-
-/* HEADER */
-
-.app-header {
-    background: white;
-    border-radius: 12px;
-    padding: 24px 28px;
-    margin-bottom: 25px;
-    border: 1px solid #E1E6ED;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.app-header-title {
-    font-size: 30px;
-    font-weight: 700;
-    color: #0B2A52;
-    margin-bottom: 4px;
-}
-
-.app-header-subtitle {
-    color: #667085;
-    font-size: 15px;
-}
-
-/* SIDEBAR */
-
-section[data-testid="stSidebar"] {
-    background-color: #0B2A52;
-}
-
-section[data-testid="stSidebar"] * {
-    color: white;
-}
-
-.sidebar-brand {
-    padding: 15px 10px 30px 10px;
-}
-
-.sidebar-brand-title {
-    font-size: 25px;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: 0.5px;
-}
-
-.sidebar-brand-subtitle {
-    margin-top: 8px;
-    font-size: 12px;
-    color: #BFD2EA !important;
-}
-
-/* TITOLI */
 
 h1, h2, h3 {
-    color: #0B2A52 !important;
+    color: #172033;
+    font-weight: 650;
+    letter-spacing: -0.3px;
 }
 
 h1 {
-    font-weight: 700 !important;
+    font-size: 2rem !important;
 }
 
 h2 {
-    font-weight: 650 !important;
+    font-size: 1.45rem !important;
 }
 
 h3 {
-    font-weight: 600 !important;
+    font-size: 1.15rem !important;
 }
 
-/* METRICHE */
+p, label {
+    color: #4B5870;
+}
 
-.metric-card {
-    background: white;
-    border: 1px solid #E1E6ED;
+/* ---------- HEADER ---------- */
+.app-header {
+    background: #FFFFFF;
+    border: 1px solid #E1E6EF;
     border-radius: 12px;
-    padding: 20px;
-    min-height: 125px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.035);
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(20, 40, 70, 0.04);
+}
+
+.app-header-title {
+    color: #102A43;
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.app-header-subtitle {
+    color: #69778C;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* ---------- SIDEBAR ---------- */
+section[data-testid="stSidebar"] {
+    background: #0B2A52;
+    border-right: 1px solid #163E6F;
+}
+
+section[data-testid="stSidebar"] > div {
+    background: #0B2A52;
+}
+
+section[data-testid="stSidebar"] * {
+    color: #FFFFFF;
+}
+
+.sidebar-brand {
+    padding: 10px 8px 22px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.16);
+    margin-bottom: 18px;
+}
+
+.sidebar-brand-title {
+    color: #FFFFFF;
+    font-size: 21px;
+    font-weight: 750;
+    line-height: 1.1;
+}
+
+.sidebar-brand-subtitle {
+    color: #B9CCE4;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+section[data-testid="stSidebar"] .stRadio > label {
+    color: #AFC3DC !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] {
+    gap: 5px;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    border-radius: 7px;
+    padding: 8px 10px;
+    transition: background 0.15s ease;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] {
+    background: #1456C3;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label p {
+    color: #FFFFFF !important;
+    font-size: 14px !important;
+    font-weight: 550 !important;
+}
+
+/* ---------- METRICHE ---------- */
+.metric-card {
+    background: #FFFFFF;
+    border: 1px solid #E0E5ED;
+    border-radius: 11px;
+    padding: 19px 20px;
+    min-height: 118px;
+    box-shadow: 0 2px 8px rgba(20, 40, 70, 0.035);
 }
 
 .metric-title {
-    color: #667085;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 10px;
+    color: #68758A;
+    font-size: 13px;
+    font-weight: 550;
+    margin-bottom: 9px;
 }
 
 .metric-value {
-    color: #0B2A52;
+    color: #14213D;
     font-size: 30px;
     font-weight: 750;
+    line-height: 1;
 }
 
-/* CARD */
+.metric-description {
+    color: #8A95A6;
+    font-size: 12px;
+    margin-top: 9px;
+}
 
+/* ---------- CARD ---------- */
 .clinical-card {
-    background: white;
-    border: 1px solid #E1E6ED;
-    border-radius: 12px;
-    padding: 22px;
+    background: #FFFFFF;
+    border: 1px solid #E0E5ED;
+    border-radius: 11px;
+    padding: 20px;
     margin-bottom: 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.035);
+    box-shadow: 0 2px 8px rgba(20, 40, 70, 0.035);
 }
 
-/* INPUT */
-
-.stTextInput input,
-.stNumberInput input,
-.stDateInput input,
-.stTextArea textarea,
-.stSelectbox div[data-baseweb="select"] {
-    border-radius: 8px !important;
-}
-
-/* BUTTON */
-
-.stButton > button {
-    border-radius: 8px;
+/* ---------- TABS ---------- */
+button[data-baseweb="tab"] {
     font-weight: 600;
-    min-height: 42px;
+    color: #5A667A;
 }
 
-/* TABS */
-
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #1456C3;
 }
 
-.stTabs [data-baseweb="tab"] {
+/* ---------- INPUT ---------- */
+div[data-baseweb="input"] > div,
+div[data-baseweb="select"] > div,
+textarea {
+    border-radius: 7px !important;
+    border-color: #D6DDE8 !important;
+    background: #FFFFFF !important;
+}
+
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+    border-color: #1456C3 !important;
+    box-shadow: 0 0 0 1px #1456C3 !important;
+}
+
+/* ---------- BUTTONS ---------- */
+.stButton > button,
+.stFormSubmitButton > button {
+    border-radius: 7px;
     font-weight: 600;
+    min-height: 40px;
 }
 
-/* TABLE */
+.stButton > button[kind="primary"],
+.stFormSubmitButton > button[kind="primary"] {
+    background: #1456C3;
+    border: 1px solid #1456C3;
+    color: #FFFFFF;
+}
 
+.stButton > button[kind="primary"]:hover,
+.stFormSubmitButton > button[kind="primary"]:hover {
+    background: #0F47A5;
+    border-color: #0F47A5;
+}
+
+/* ---------- DATAFRAME ---------- */
 [data-testid="stDataFrame"] {
-    border-radius: 10px;
+    border: 1px solid #E0E5ED;
+    border-radius: 9px;
     overflow: hidden;
 }
 
-/* ALERT */
-
-.stAlert {
-    border-radius: 10px;
+/* ---------- ALERTS ---------- */
+div[data-testid="stAlert"] {
+    border-radius: 8px;
 }
 
-/* FOOTER */
+/* ---------- DIVIDER ---------- */
+hr {
+    border-color: #E0E5ED;
+}
 
+/* ---------- FOOTER ---------- */
 .footer {
     text-align: center;
-    color: #98A2B3;
+    color: #8A95A6;
     font-size: 12px;
-    padding: 30px 0 10px 0;
+    padding: 28px 0 5px 0;
 }
 
+/* ---------- SECTION LABEL ---------- */
+.section-label {
+    color: #6B778C;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin: 6px 0 10px 0;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -198,88 +276,111 @@ h3 {
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
     conn = get_connection()
-    cursor = conn.cursor()
+    c = conn.cursor()
 
-    cursor.execute("""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS medici (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
             cognome TEXT NOT NULL,
             specializzazione TEXT,
+            codice_fiscale TEXT UNIQUE,
             telefono TEXT,
-            email TEXT
+            email TEXT,
+            data_assunzione DATE,
+            ruolo TEXT,
+            note TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
-    cursor.execute("""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS pazienti (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
             cognome TEXT NOT NULL,
-            data_nascita TEXT,
-            codice_fiscale TEXT,
+            data_nascita DATE,
+            sesso TEXT,
+            codice_fiscale TEXT UNIQUE,
             telefono TEXT,
             email TEXT,
             indirizzo TEXT,
-            citta TEXT
+            citta TEXT,
+            gruppo_sanguigno TEXT,
+            allergie TEXT,
+            patologie_pregresse TEXT,
+            note TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
-    cursor.execute("""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS ammissioni (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             paziente_id INTEGER NOT NULL,
             medico_id INTEGER,
-            data_ingresso TEXT NOT NULL,
-            data_uscita TEXT,
+            data_ingresso DATE NOT NULL,
+            data_uscita DATE,
             reparto TEXT,
-            motivo TEXT,
+            stanza TEXT,
+            motivo_ricovero TEXT,
+            stato TEXT DEFAULT 'In corso',
+            note TEXT,
             FOREIGN KEY (paziente_id) REFERENCES pazienti(id) ON DELETE CASCADE,
             FOREIGN KEY (medico_id) REFERENCES medici(id) ON DELETE SET NULL
         )
     """)
 
-    cursor.execute("""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS diagnosi (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             paziente_id INTEGER NOT NULL,
             medico_id INTEGER,
-            data_diagnosi TEXT,
-            diagnosi TEXT NOT NULL,
+            ammissione_id INTEGER,
+            data_diagnosi DATE NOT NULL,
+            codice_icd TEXT,
+            descrizione TEXT NOT NULL,
+            tipo TEXT,
+            gravita TEXT,
             note TEXT,
             FOREIGN KEY (paziente_id) REFERENCES pazienti(id) ON DELETE CASCADE,
-            FOREIGN KEY (medico_id) REFERENCES medici(id) ON DELETE SET NULL
+            FOREIGN KEY (medico_id) REFERENCES medici(id) ON DELETE SET NULL,
+            FOREIGN KEY (ammissione_id) REFERENCES ammissioni(id) ON DELETE SET NULL
         )
     """)
 
-    cursor.execute("""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS prognosi (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             paziente_id INTEGER NOT NULL,
+            diagnosi_id INTEGER,
             medico_id INTEGER,
-            data_prognosi TEXT,
-            prognosi TEXT NOT NULL,
+            data_prognosi DATE NOT NULL,
+            descrizione TEXT NOT NULL,
+            esito_previsto TEXT,
+            durata_stimata TEXT,
             note TEXT,
             FOREIGN KEY (paziente_id) REFERENCES pazienti(id) ON DELETE CASCADE,
+            FOREIGN KEY (diagnosi_id) REFERENCES diagnosi(id) ON DELETE SET NULL,
             FOREIGN KEY (medico_id) REFERENCES medici(id) ON DELETE SET NULL
         )
     """)
 
-    cursor.execute("""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS terapie (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             paziente_id INTEGER NOT NULL,
             medico_id INTEGER,
-            data_inizio TEXT,
-            data_fine TEXT,
-            terapia TEXT NOT NULL,
+            data_inizio DATE,
+            data_fine DATE,
+            farmaco_o_trattamento TEXT NOT NULL,
             dosaggio TEXT,
+            frequenza TEXT,
             note TEXT,
             FOREIGN KEY (paziente_id) REFERENCES pazienti(id) ON DELETE CASCADE,
             FOREIGN KEY (medico_id) REFERENCES medici(id) ON DELETE SET NULL
@@ -294,30 +395,72 @@ init_db()
 
 
 # ============================================================
-# FUNZIONI DATABASE
+# FUNZIONI UTILI
 # ============================================================
 
-def fetch_all(query, params=()):
+def query_df(query, params=()):
     conn = get_connection()
-    rows = conn.execute(query, params).fetchall()
-    conn.close()
-    return rows
-
-
-def fetch_one(query, params=()):
-    conn = get_connection()
-    row = conn.execute(query, params).fetchone()
-    conn.close()
-    return row
+    try:
+        return pd.read_sql_query(query, conn, params=params)
+    finally:
+        conn.close()
 
 
 def execute_query(query, params=()):
     conn = get_connection()
-    cursor = conn.execute(query, params)
-    conn.commit()
-    last_id = cursor.lastrowid
-    conn.close()
-    return last_id
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
+
+def get_pazienti():
+    return query_df("""
+        SELECT *
+        FROM pazienti
+        ORDER BY cognome COLLATE NOCASE, nome COLLATE NOCASE
+    """)
+
+
+def get_medici():
+    return query_df("""
+        SELECT *
+        FROM medici
+        ORDER BY cognome COLLATE NOCASE, nome COLLATE NOCASE
+    """)
+
+
+def get_paziente_options():
+    df = get_pazienti()
+    if df.empty:
+        return {}
+    return {
+        f"{row['cognome']} {row['nome']} — ID {row['id']}": int(row["id"])
+        for _, row in df.iterrows()
+    }
+
+
+def get_medico_options():
+    df = get_medici()
+    if df.empty:
+        return {}
+    return {
+        f"{row['cognome']} {row['nome']} — {row['specializzazione'] or 'Nessuna specializzazione'}":
+        int(row["id"])
+        for _, row in df.iterrows()
+    }
+
+
+def format_date(value):
+    if not value or pd.isna(value):
+        return "—"
+    try:
+        return datetime.strptime(str(value)[:10], "%Y-%m-%d").strftime("%d/%m/%Y")
+    except Exception:
+        return str(value)
 
 
 # ============================================================
@@ -341,9 +484,7 @@ st.markdown("""
 st.sidebar.markdown("""
 <div class="sidebar-brand">
     <div class="sidebar-brand-title">GESTIONE<br>CLINICA</div>
-    <div class="sidebar-brand-subtitle">
-        Sistema informativo clinico
-    </div>
+    <div class="sidebar-brand-subtitle">Sistema informativo clinico</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -358,7 +499,8 @@ pagina = st.sidebar.radio(
         "Prognosi",
         "Terapie",
         "Ricerca / Cartelle"
-    ]
+    ],
+    label_visibility="visible"
 )
 
 
@@ -368,108 +510,80 @@ pagina = st.sidebar.radio(
 
 if pagina == "Dashboard":
 
-    st.title("Dashboard")
+    st.header("Dashboard")
+    st.caption("Panoramica della struttura e delle attività registrate.")
 
-    pazienti_count = fetch_one(
-        "SELECT COUNT(*) AS c FROM pazienti"
-    )["c"]
-
-    medici_count = fetch_one(
-        "SELECT COUNT(*) AS c FROM medici"
-    )["c"]
-
-    ricoveri_count = fetch_one(
-        """
-        SELECT COUNT(*) AS c
+    pazienti = query_df("SELECT COUNT(*) AS totale FROM pazienti").iloc[0]["totale"]
+    medici = query_df("SELECT COUNT(*) AS totale FROM medici").iloc[0]["totale"]
+    ricoveri = query_df("""
+        SELECT COUNT(*) AS totale
         FROM ammissioni
-        WHERE data_uscita IS NULL OR data_uscita = ''
-        """
-    )["c"]
+        WHERE stato = 'In corso'
+    """).iloc[0]["totale"]
+    diagnosi = query_df("SELECT COUNT(*) AS totale FROM diagnosi").iloc[0]["totale"]
 
-    diagnosi_count = fetch_one(
-        "SELECT COUNT(*) AS c FROM diagnosi"
-    )["c"]
+    col1, col2, col3, col4 = st.columns(4)
 
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
+    with col1:
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Pazienti registrati</div>
-            <div class="metric-value">{pazienti_count}</div>
+            <div class="metric-value">{int(pazienti)}</div>
+            <div class="metric-description">Anagrafica pazienti</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with c2:
+    with col2:
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Medici / Operatori</div>
-            <div class="metric-value">{medici_count}</div>
+            <div class="metric-value">{int(medici)}</div>
+            <div class="metric-description">Personale registrato</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with c3:
+    with col3:
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Ricoveri in corso</div>
-            <div class="metric-value">{ricoveri_count}</div>
+            <div class="metric-value">{int(ricoveri)}</div>
+            <div class="metric-description">Degenze attive</div>
         </div>
         """, unsafe_allow_html=True)
 
-    with c4:
+    with col4:
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-title">Diagnosi registrate</div>
-            <div class="metric-value">{diagnosi_count}</div>
+            <div class="metric-value">{int(diagnosi)}</div>
+            <div class="metric-description">Documentazione clinica</div>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("")
+    st.write("")
+    st.subheader("Ultime ammissioni")
 
-    st.markdown("""
-    <div class="clinical-card">
-        <h3>Ultime ammissioni</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-    ultime = fetch_all("""
+    df = query_df("""
         SELECT
-            a.id,
-            p.nome || ' ' || p.cognome AS paziente,
-            m.nome || ' ' || m.cognome AS medico,
-            a.data_ingresso,
-            a.data_uscita,
-            a.reparto,
-            a.motivo
+            a.id AS ID,
+            p.cognome || ' ' || p.nome AS Paziente,
+            m.cognome || ' ' || m.nome AS Medico,
+            a.data_ingresso AS "Data ingresso",
+            a.data_uscita AS "Data uscita",
+            a.reparto AS Reparto,
+            a.stanza AS Stanza,
+            a.stato AS Stato
         FROM ammissioni a
-        JOIN pazienti p ON p.id = a.paziente_id
-        LEFT JOIN medici m ON m.id = a.medico_id
-        ORDER BY a.id DESC
+        LEFT JOIN pazienti p ON a.paziente_id = p.id
+        LEFT JOIN medici m ON a.medico_id = m.id
+        ORDER BY a.data_ingresso DESC
         LIMIT 10
     """)
 
-    if ultime:
-        import pandas as pd
-
-        df = pd.DataFrame([dict(row) for row in ultime])
-
-        df.columns = [
-            "ID",
-            "Paziente",
-            "Medico",
-            "Ingresso",
-            "Uscita",
-            "Reparto",
-            "Motivo"
-        ]
-
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
+    if df.empty:
+        st.info("Non sono presenti ammissioni.")
     else:
-        st.info("Non sono ancora presenti ammissioni.")
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
 
 # ============================================================
@@ -478,312 +592,353 @@ if pagina == "Dashboard":
 
 elif pagina == "Pazienti":
 
-    st.title("Pazienti")
+    st.header("Pazienti")
+    st.caption("Anagrafica, consultazione e aggiornamento dei pazienti.")
 
-    tab1, tab2 = st.tabs([
-        "Elenco pazienti",
-        "Nuovo paziente"
-    ])
+    tab_elenco, tab_nuovo, tab_modifica = st.tabs(
+        ["Elenco pazienti", "Nuovo paziente", "Modifica paziente"]
+    )
 
-    with tab1:
+    with tab_elenco:
+        df = get_pazienti()
 
-        pazienti = fetch_all("""
-            SELECT
-                id,
-                nome,
-                cognome,
-                data_nascita,
-                codice_fiscale,
-                telefono,
-                email,
-                citta
-            FROM pazienti
-            ORDER BY cognome, nome
-        """)
-
-        if pazienti:
-
-            import pandas as pd
-
-            df = pd.DataFrame([dict(row) for row in pazienti])
-
-            df.columns = [
-                "ID",
-                "Nome",
-                "Cognome",
-                "Data nascita",
-                "Codice fiscale",
-                "Telefono",
-                "Email",
-                "Città"
-            ]
-
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True
-            )
-
-            st.divider()
-
-            st.subheader("Modifica paziente")
-
-            id_modifica = st.number_input(
-                "ID paziente",
-                min_value=1,
-                step=1
-            )
-
-            paziente = fetch_one(
-                "SELECT * FROM pazienti WHERE id = ?",
-                (id_modifica,)
-            )
-
-            if paziente:
-
-                nome = st.text_input(
-                    "Nome",
-                    value=paziente["nome"] or ""
-                )
-
-                cognome = st.text_input(
-                    "Cognome",
-                    value=paziente["cognome"] or ""
-                )
-
-                data_nascita = st.text_input(
-                    "Data di nascita",
-                    value=paziente["data_nascita"] or ""
-                )
-
-                codice_fiscale = st.text_input(
-                    "Codice fiscale",
-                    value=paziente["codice_fiscale"] or ""
-                )
-
-                telefono = st.text_input(
-                    "Telefono",
-                    value=paziente["telefono"] or ""
-                )
-
-                email = st.text_input(
-                    "Email",
-                    value=paziente["email"] or ""
-                )
-
-                indirizzo = st.text_input(
-                    "Indirizzo",
-                    value=paziente["indirizzo"] or ""
-                )
-
-                citta = st.text_input(
-                    "Città",
-                    value=paziente["citta"] or ""
-                )
-
-                c1, c2 = st.columns(2)
-
-                with c1:
-                    if st.button(
-                        "Salva modifiche",
-                        type="primary",
-                        use_container_width=True
-                    ):
-                        execute_query("""
-                            UPDATE pazienti
-                            SET
-                                nome = ?,
-                                cognome = ?,
-                                data_nascita = ?,
-                                codice_fiscale = ?,
-                                telefono = ?,
-                                email = ?,
-                                indirizzo = ?,
-                                citta = ?
-                            WHERE id = ?
-                        """, (
-                            nome,
-                            cognome,
-                            data_nascita,
-                            codice_fiscale,
-                            telefono,
-                            email,
-                            indirizzo,
-                            citta,
-                            id_modifica
-                        ))
-
-                        st.success("Paziente aggiornato.")
-                        st.rerun()
-
-                with c2:
-                    if st.button(
-                        "Elimina paziente",
-                        use_container_width=True
-                    ):
-                        execute_query(
-                            "DELETE FROM pazienti WHERE id = ?",
-                            (id_modifica,)
-                        )
-
-                        st.success("Paziente eliminato.")
-                        st.rerun()
-
+        if df.empty:
+            st.info("Nessun paziente registrato.")
         else:
-            st.info("Non sono presenti pazienti.")
-
-    with tab2:
-
-        st.subheader("Inserimento nuovo paziente")
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            nome = st.text_input("Nome *")
-            cognome = st.text_input("Cognome *")
-            data_nascita = st.text_input(
-                "Data di nascita",
-                placeholder="GG/MM/AAAA"
-            )
-            codice_fiscale = st.text_input(
-                "Codice fiscale"
+            ricerca = st.text_input(
+                "Cerca paziente",
+                placeholder="Nome, cognome o codice fiscale..."
             )
 
-        with c2:
-            telefono = st.text_input("Telefono")
-            email = st.text_input("Email")
-            indirizzo = st.text_input("Indirizzo")
-            citta = st.text_input("Città")
+            if ricerca:
+                mask = (
+                    df["nome"].fillna("").str.contains(ricerca, case=False, na=False)
+                    | df["cognome"].fillna("").str.contains(ricerca, case=False, na=False)
+                    | df["codice_fiscale"].fillna("").str.contains(ricerca, case=False, na=False)
+                )
+                df = df[mask]
 
-        if st.button(
-            "Registra paziente",
-            type="primary",
-            use_container_width=True
-        ):
+            colonne = [
+                "id", "nome", "cognome", "data_nascita", "sesso",
+                "codice_fiscale", "telefono", "citta"
+            ]
+            colonne = [c for c in colonne if c in df.columns]
+
+            st.dataframe(df[colonne], use_container_width=True, hide_index=True)
+            st.caption(f"Pazienti visualizzati: {len(df)}")
+
+    with tab_nuovo:
+        st.subheader("Registrazione nuovo paziente")
+
+        with st.form("nuovo_paziente_form", clear_on_submit=True):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                nome = st.text_input("Nome *")
+                cognome = st.text_input("Cognome *")
+                data_nascita = st.date_input(
+                    "Data di nascita",
+                    value=date.today(),
+                    format="DD/MM/YYYY"
+                )
+                sesso = st.selectbox(
+                    "Sesso",
+                    ["Non specificato", "M", "F", "Altro"]
+                )
+                codice_fiscale = st.text_input("Codice fiscale")
+
+            with col2:
+                telefono = st.text_input("Telefono")
+                email = st.text_input("Email")
+                indirizzo = st.text_input("Indirizzo")
+                citta = st.text_input("Città")
+                gruppo_sanguigno = st.selectbox(
+                    "Gruppo sanguigno",
+                    ["Non specificato", "A+", "A-", "B+", "B-",
+                     "AB+", "AB-", "0+", "0-"]
+                )
+
+            st.markdown('<div class="section-label">Informazioni cliniche</div>',
+                        unsafe_allow_html=True)
+
+            allergie = st.text_area(
+                "Allergie",
+                placeholder="Indicare eventuali allergie conosciute..."
+            )
+            patologie = st.text_area(
+                "Patologie pregresse",
+                placeholder="Indicare patologie o condizioni cliniche rilevanti..."
+            )
+            note = st.text_area("Note")
+
+            salva = st.form_submit_button(
+                "Salva nuovo paziente",
+                use_container_width=True,
+                type="primary"
+            )
+
+        if salva:
+            nome = nome.strip()
+            cognome = cognome.strip()
 
             if not nome or not cognome:
                 st.error("Nome e cognome sono obbligatori.")
             else:
-
-                execute_query("""
-                    INSERT INTO pazienti (
-                        nome,
-                        cognome,
-                        data_nascita,
-                        codice_fiscale,
-                        telefono,
-                        email,
-                        indirizzo,
-                        citta
+                try:
+                    execute_query(
+                        """
+                        INSERT INTO pazienti (
+                            nome, cognome, data_nascita, sesso, codice_fiscale,
+                            telefono, email, indirizzo, citta, gruppo_sanguigno,
+                            allergie, patologie_pregresse, note
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            nome, cognome, data_nascita.isoformat(),
+                            None if sesso == "Non specificato" else sesso,
+                            codice_fiscale.strip().upper() or None,
+                            telefono.strip() or None,
+                            email.strip() or None,
+                            indirizzo.strip() or None,
+                            citta.strip() or None,
+                            None if gruppo_sanguigno == "Non specificato"
+                            else gruppo_sanguigno,
+                            allergie.strip() or None,
+                            patologie.strip() or None,
+                            note.strip() or None
+                        )
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    nome,
-                    cognome,
-                    data_nascita,
-                    codice_fiscale,
-                    telefono,
-                    email,
-                    indirizzo,
-                    citta
-                ))
+                    st.success(f"Paziente {nome} {cognome} registrato correttamente.")
+                    st.rerun()
+                except sqlite3.IntegrityError as e:
+                    if "codice_fiscale" in str(e):
+                        st.error("Esiste già un paziente con questo codice fiscale.")
+                    else:
+                        st.error(f"Errore durante il salvataggio: {e}")
 
-                st.success("Paziente registrato correttamente.")
-                st.rerun()
+    with tab_modifica:
+        pazienti = get_pazienti()
+
+        if pazienti.empty:
+            st.info("Non ci sono pazienti da modificare.")
+        else:
+            options = {
+                f"{r['cognome']} {r['nome']} — ID {r['id']}": int(r["id"])
+                for _, r in pazienti.iterrows()
+            }
+
+            scelta = st.selectbox("Seleziona paziente", list(options.keys()))
+            paziente_id = options[scelta]
+
+            p = query_df(
+                "SELECT * FROM pazienti WHERE id = ?",
+                (paziente_id,)
+            ).iloc[0]
+
+            with st.form("modifica_paziente_form"):
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    nome_m = st.text_input("Nome *", value=p["nome"] or "")
+                    cognome_m = st.text_input("Cognome *", value=p["cognome"] or "")
+
+                    try:
+                        data_default = datetime.strptime(
+                            str(p["data_nascita"])[:10], "%Y-%m-%d"
+                        ).date()
+                    except Exception:
+                        data_default = date.today()
+
+                    data_nascita_m = st.date_input(
+                        "Data di nascita",
+                        value=data_default,
+                        format="DD/MM/YYYY"
+                    )
+
+                    sesso_valori = ["Non specificato", "M", "F", "Altro"]
+                    sesso_attuale = p["sesso"] or "Non specificato"
+
+                    sesso_m = st.selectbox(
+                        "Sesso",
+                        sesso_valori,
+                        index=sesso_valori.index(sesso_attuale)
+                        if sesso_attuale in sesso_valori else 0
+                    )
+
+                    cf_m = st.text_input(
+                        "Codice fiscale",
+                        value=p["codice_fiscale"] or ""
+                    )
+
+                with col2:
+                    telefono_m = st.text_input("Telefono", value=p["telefono"] or "")
+                    email_m = st.text_input("Email", value=p["email"] or "")
+                    indirizzo_m = st.text_input("Indirizzo", value=p["indirizzo"] or "")
+                    citta_m = st.text_input("Città", value=p["citta"] or "")
+
+                    gruppi = ["Non specificato", "A+", "A-", "B+", "B-",
+                              "AB+", "AB-", "0+", "0-"]
+                    gruppo_attuale = p["gruppo_sanguigno"] or "Non specificato"
+
+                    gruppo_m = st.selectbox(
+                        "Gruppo sanguigno",
+                        gruppi,
+                        index=gruppi.index(gruppo_attuale)
+                        if gruppo_attuale in gruppi else 0
+                    )
+
+                allergie_m = st.text_area("Allergie", value=p["allergie"] or "")
+                patologie_m = st.text_area(
+                    "Patologie pregresse",
+                    value=p["patologie_pregresse"] or ""
+                )
+                note_m = st.text_area("Note", value=p["note"] or "")
+
+                aggiorna = st.form_submit_button(
+                    "Salva modifiche",
+                    use_container_width=True,
+                    type="primary"
+                )
+
+            if aggiorna:
+                if not nome_m.strip() or not cognome_m.strip():
+                    st.error("Nome e cognome sono obbligatori.")
+                else:
+                    try:
+                        execute_query(
+                            """
+                            UPDATE pazienti
+                            SET nome = ?, cognome = ?, data_nascita = ?, sesso = ?,
+                                codice_fiscale = ?, telefono = ?, email = ?,
+                                indirizzo = ?, citta = ?, gruppo_sanguigno = ?,
+                                allergie = ?, patologie_pregresse = ?, note = ?
+                            WHERE id = ?
+                            """,
+                            (
+                                nome_m.strip(), cognome_m.strip(),
+                                data_nascita_m.isoformat(),
+                                None if sesso_m == "Non specificato" else sesso_m,
+                                cf_m.strip().upper() or None,
+                                telefono_m.strip() or None,
+                                email_m.strip() or None,
+                                indirizzo_m.strip() or None,
+                                citta_m.strip() or None,
+                                None if gruppo_m == "Non specificato" else gruppo_m,
+                                allergie_m.strip() or None,
+                                patologie_m.strip() or None,
+                                note_m.strip() or None,
+                                paziente_id
+                            )
+                        )
+                        st.success("Dati del paziente aggiornati.")
+                        st.rerun()
+                    except sqlite3.IntegrityError:
+                        st.error("Il codice fiscale inserito appartiene già a un altro paziente.")
+
+            st.divider()
+
+            with st.expander("Elimina definitivamente questo paziente"):
+                st.warning(
+                    "L'eliminazione rimuoverà anche le informazioni cliniche collegate."
+                )
+                conferma = st.checkbox("Confermo di voler eliminare questo paziente.")
+
+                if st.button("Elimina paziente", type="secondary"):
+                    if not conferma:
+                        st.error("Conferma l'eliminazione prima di procedere.")
+                    else:
+                        execute_query(
+                            "DELETE FROM pazienti WHERE id = ?",
+                            (paziente_id,)
+                        )
+                        st.success("Paziente eliminato.")
+                        st.rerun()
 
 
 # ============================================================
-# MEDICI
+# MEDICI / OPERATORI
 # ============================================================
 
 elif pagina == "Medici / Operatori":
 
-    st.title("Medici / Operatori")
+    st.header("Medici e Operatori")
+    st.caption("Anagrafica del personale e dei professionisti.")
 
-    tab1, tab2 = st.tabs([
-        "Elenco",
-        "Nuovo medico / operatore"
-    ])
+    tab1, tab2 = st.tabs(["Elenco", "Nuovo medico / operatore"])
 
     with tab1:
+        df = get_medici()
 
-        medici = fetch_all("""
-            SELECT
-                id,
-                nome,
-                cognome,
-                specializzazione,
-                telefono,
-                email
-            FROM medici
-            ORDER BY cognome, nome
-        """)
-
-        if medici:
-
-            import pandas as pd
-
-            df = pd.DataFrame([dict(row) for row in medici])
-
-            df.columns = [
-                "ID",
-                "Nome",
-                "Cognome",
-                "Specializzazione",
-                "Telefono",
-                "Email"
-            ]
-
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True
-            )
-
+        if df.empty:
+            st.info("Nessun medico o operatore registrato.")
         else:
-            st.info("Non sono presenti medici o operatori.")
+            colonne = [
+                "id", "nome", "cognome", "specializzazione",
+                "ruolo", "telefono", "email"
+            ]
+            st.dataframe(df[colonne], use_container_width=True, hide_index=True)
 
     with tab2:
+        with st.form("nuovo_medico"):
+            col1, col2 = st.columns(2)
 
-        st.subheader("Nuovo medico / operatore")
+            with col1:
+                nome = st.text_input("Nome *")
+                cognome = st.text_input("Cognome *")
+                specializzazione = st.text_input("Specializzazione")
+                codice_fiscale = st.text_input("Codice fiscale")
 
-        nome = st.text_input("Nome *")
-        cognome = st.text_input("Cognome *")
-        specializzazione = st.text_input(
-            "Specializzazione"
-        )
-        telefono = st.text_input("Telefono")
-        email = st.text_input("Email")
+            with col2:
+                telefono = st.text_input("Telefono")
+                email = st.text_input("Email")
+                data_assunzione = st.date_input(
+                    "Data assunzione",
+                    value=date.today(),
+                    format="DD/MM/YYYY"
+                )
+                ruolo = st.selectbox(
+                    "Ruolo",
+                    ["Non specificato", "Medico", "Infermiere",
+                     "Tecnico", "Specialista", "Altro"]
+                )
 
-        if st.button(
-            "Registra medico / operatore",
-            type="primary",
-            use_container_width=True
-        ):
+            note = st.text_area("Note")
 
-            if not nome or not cognome:
+            salva = st.form_submit_button(
+                "Salva medico / operatore",
+                use_container_width=True,
+                type="primary"
+            )
+
+        if salva:
+            if not nome.strip() or not cognome.strip():
                 st.error("Nome e cognome sono obbligatori.")
             else:
-
-                execute_query("""
-                    INSERT INTO medici (
-                        nome,
-                        cognome,
-                        specializzazione,
-                        telefono,
-                        email
+                try:
+                    execute_query(
+                        """
+                        INSERT INTO medici (
+                            nome, cognome, specializzazione, codice_fiscale,
+                            telefono, email, data_assunzione, ruolo, note
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            nome.strip(), cognome.strip(),
+                            specializzazione.strip() or None,
+                            codice_fiscale.strip().upper() or None,
+                            telefono.strip() or None,
+                            email.strip() or None,
+                            data_assunzione.isoformat(),
+                            None if ruolo == "Non specificato" else ruolo,
+                            note.strip() or None
+                        )
                     )
-                    VALUES (?, ?, ?, ?, ?)
-                """, (
-                    nome,
-                    cognome,
-                    specializzazione,
-                    telefono,
-                    email
-                ))
-
-                st.success("Medico / operatore registrato.")
-                st.rerun()
+                    st.success("Medico / operatore salvato.")
+                    st.rerun()
+                except sqlite3.IntegrityError:
+                    st.error("Codice fiscale già presente.")
 
 
 # ============================================================
@@ -792,164 +947,104 @@ elif pagina == "Medici / Operatori":
 
 elif pagina == "Ammissioni / Degenza":
 
-    st.title("Ammissioni / Degenza")
+    st.header("Ammissioni e Degenza")
+    st.caption("Gestione degli ingressi, della degenza e delle dimissioni.")
 
-    pazienti = fetch_all("""
-        SELECT id, nome, cognome
-        FROM pazienti
-        ORDER BY cognome, nome
-    """)
+    tab1, tab2 = st.tabs(["Ammissioni", "Nuova ammissione"])
 
-    medici = fetch_all("""
-        SELECT id, nome, cognome
-        FROM medici
-        ORDER BY cognome, nome
-    """)
+    with tab1:
+        df = query_df("""
+            SELECT
+                a.id AS ID,
+                p.cognome || ' ' || p.nome AS Paziente,
+                m.cognome || ' ' || m.nome AS Medico,
+                a.data_ingresso AS "Data ingresso",
+                a.data_uscita AS "Data uscita",
+                a.reparto AS Reparto,
+                a.stanza AS Stanza,
+                a.motivo_ricovero AS "Motivo ricovero",
+                a.stato AS Stato
+            FROM ammissioni a
+            LEFT JOIN pazienti p ON a.paziente_id = p.id
+            LEFT JOIN medici m ON a.medico_id = m.id
+            ORDER BY a.data_ingresso DESC
+        """)
 
-    if not pazienti:
-        st.warning(
-            "Devi prima registrare almeno un paziente."
-        )
-    else:
+        if df.empty:
+            st.info("Nessuna ammissione registrata.")
+        else:
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-        pazienti_dict = {
-            f"{p['cognome']} {p['nome']} — ID {p['id']}": p["id"]
-            for p in pazienti
-        }
+    with tab2:
+        pazienti = get_paziente_options()
+        medici = get_medico_options()
 
-        medici_dict = {
-            f"{m['cognome']} {m['nome']} — ID {m['id']}": m["id"]
-            for m in medici
-        }
-
-        paziente_selezionato = st.selectbox(
-            "Paziente",
-            list(pazienti_dict.keys())
-        )
-
-        medico_options = ["Nessun medico"] + list(
-            medici_dict.keys()
-        )
-
-        medico_selezionato = st.selectbox(
-            "Medico / Operatore",
-            medico_options
-        )
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            data_ingresso = st.date_input(
-                "Data ingresso",
-                value=date.today(),
-                format="DD/MM/YYYY"
-            )
-
-        with c2:
-            data_uscita = st.date_input(
-                "Data uscita",
-                value=None,
-                format="DD/MM/YYYY"
-            )
-
-        reparto = st.text_input("Reparto")
-        motivo = st.text_area("Motivo del ricovero")
-
-        if st.button(
-            "Registra ammissione",
-            type="primary",
-            use_container_width=True
-        ):
-
-            paziente_id = pazienti_dict[
-                paziente_selezionato
-            ]
-
-            medico_id = None
-
-            if medico_selezionato != "Nessun medico":
-                medico_id = medici_dict[
-                    medico_selezionato
-                ]
-
-            data_ingresso_str = data_ingresso.strftime(
-                "%Y-%m-%d"
-            )
-
-            data_uscita_str = None
-
-            if data_uscita:
-                data_uscita_str = data_uscita.strftime(
-                    "%Y-%m-%d"
+        if not pazienti:
+            st.warning("Devi registrare almeno un paziente prima di creare un'ammissione.")
+        else:
+            with st.form("nuova_ammissione"):
+                paziente_label = st.selectbox("Paziente *", list(pazienti.keys()))
+                medico_label = st.selectbox(
+                    "Medico responsabile",
+                    ["Nessuno"] + list(medici.keys())
                 )
 
-            execute_query("""
-                INSERT INTO ammissioni (
-                    paziente_id,
-                    medico_id,
-                    data_ingresso,
-                    data_uscita,
-                    reparto,
-                    motivo
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    data_ingresso = st.date_input(
+                        "Data ingresso *",
+                        value=date.today(),
+                        format="DD/MM/YYYY"
+                    )
+                    reparto = st.text_input("Reparto")
+                    stanza = st.text_input("Stanza")
+
+                with col2:
+                    stato = st.selectbox(
+                        "Stato",
+                        ["In corso", "Dimesso", "Trasferito"]
+                    )
+                    data_uscita = st.date_input(
+                        "Data uscita",
+                        value=None,
+                        format="DD/MM/YYYY"
+                    )
+
+                motivo = st.text_area("Motivo del ricovero")
+                note = st.text_area("Note")
+
+                salva = st.form_submit_button(
+                    "Registra ammissione",
+                    use_container_width=True,
+                    type="primary"
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                paziente_id,
-                medico_id,
-                data_ingresso_str,
-                data_uscita_str,
-                reparto,
-                motivo
-            ))
 
-            st.success("Ammissione registrata.")
-            st.rerun()
+            if salva:
+                pid = pazienti[paziente_label]
+                mid = medici[medico_label] if medico_label != "Nessuno" else None
 
-    st.divider()
+                execute_query(
+                    """
+                    INSERT INTO ammissioni (
+                        paziente_id, medico_id, data_ingresso, data_uscita,
+                        reparto, stanza, motivo_ricovero, stato, note
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        pid, mid, data_ingresso.isoformat(),
+                        data_uscita.isoformat() if data_uscita else None,
+                        reparto.strip() or None,
+                        stanza.strip() or None,
+                        motivo.strip() or None,
+                        stato,
+                        note.strip() or None
+                    )
+                )
 
-    st.subheader("Ammissioni registrate")
-
-    ammissioni = fetch_all("""
-        SELECT
-            a.id,
-            p.nome || ' ' || p.cognome AS paziente,
-            m.nome || ' ' || m.cognome AS medico,
-            a.data_ingresso,
-            a.data_uscita,
-            a.reparto,
-            a.motivo
-        FROM ammissioni a
-        JOIN pazienti p ON p.id = a.paziente_id
-        LEFT JOIN medici m ON m.id = a.medico_id
-        ORDER BY a.id DESC
-    """)
-
-    if ammissioni:
-
-        import pandas as pd
-
-        df = pd.DataFrame(
-            [dict(row) for row in ammissioni]
-        )
-
-        df.columns = [
-            "ID",
-            "Paziente",
-            "Medico",
-            "Ingresso",
-            "Uscita",
-            "Reparto",
-            "Motivo"
-        ]
-
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    else:
-        st.info("Nessuna ammissione registrata.")
+                st.success("Ammissione registrata.")
+                st.rerun()
 
 
 # ============================================================
@@ -958,148 +1053,105 @@ elif pagina == "Ammissioni / Degenza":
 
 elif pagina == "Diagnosi":
 
-    st.title("Diagnosi")
+    st.header("Diagnosi")
+    st.caption("Registrazione e consultazione della documentazione diagnostica.")
 
-    pazienti = fetch_all("""
-        SELECT id, nome, cognome
-        FROM pazienti
-        ORDER BY cognome, nome
-    """)
+    tab1, tab2 = st.tabs(["Elenco diagnosi", "Nuova diagnosi"])
 
-    medici = fetch_all("""
-        SELECT id, nome, cognome
-        FROM medici
-        ORDER BY cognome, nome
-    """)
+    with tab1:
+        df = query_df("""
+            SELECT
+                d.id AS ID,
+                p.cognome || ' ' || p.nome AS Paziente,
+                m.cognome || ' ' || m.nome AS Medico,
+                d.data_diagnosi AS "Data",
+                d.codice_icd AS "ICD-10",
+                d.descrizione AS Descrizione,
+                d.tipo AS Tipo,
+                d.gravita AS Gravità
+            FROM diagnosi d
+            LEFT JOIN pazienti p ON d.paziente_id = p.id
+            LEFT JOIN medici m ON d.medico_id = m.id
+            ORDER BY d.data_diagnosi DESC
+        """)
 
-    if not pazienti:
-        st.warning(
-            "Devi prima registrare almeno un paziente."
-        )
-    else:
+        if df.empty:
+            st.info("Nessuna diagnosi registrata.")
+        else:
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-        pazienti_dict = {
-            f"{p['cognome']} {p['nome']} — ID {p['id']}": p["id"]
-            for p in pazienti
-        }
+    with tab2:
+        pazienti = get_paziente_options()
+        medici = get_medico_options()
 
-        medici_dict = {
-            f"{m['cognome']} {m['nome']} — ID {m['id']}": m["id"]
-            for m in medici
-        }
+        if not pazienti:
+            st.warning("Inserisci prima almeno un paziente.")
+        else:
+            with st.form("nuova_diagnosi"):
+                paziente_label = st.selectbox("Paziente *", list(pazienti.keys()))
+                medico_label = st.selectbox(
+                    "Medico",
+                    ["Nessuno"] + list(medici.keys())
+                )
+                data_diagnosi = st.date_input(
+                    "Data diagnosi",
+                    value=date.today(),
+                    format="DD/MM/YYYY"
+                )
+                codice_icd = st.text_input("Codice ICD-10")
+                descrizione = st.text_area("Descrizione diagnosi *")
 
-        paziente_selezionato = st.selectbox(
-            "Paziente",
-            list(pazienti_dict.keys()),
-            key="diagnosi_paziente"
-        )
+                col1, col2 = st.columns(2)
 
-        medico_options = ["Nessun medico"] + list(
-            medici_dict.keys()
-        )
-
-        medico_selezionato = st.selectbox(
-            "Medico / Operatore",
-            medico_options,
-            key="diagnosi_medico"
-        )
-
-        data_diagnosi = st.date_input(
-            "Data diagnosi",
-            value=date.today(),
-            format="DD/MM/YYYY"
-        )
-
-        diagnosi = st.text_area(
-            "Diagnosi *",
-            height=120
-        )
-
-        note = st.text_area(
-            "Note",
-            height=100
-        )
-
-        if st.button(
-            "Registra diagnosi",
-            type="primary",
-            use_container_width=True
-        ):
-
-            if not diagnosi:
-                st.error("Inserisci la diagnosi.")
-            else:
-
-                medico_id = None
-
-                if medico_selezionato != "Nessun medico":
-                    medico_id = medici_dict[
-                        medico_selezionato
-                    ]
-
-                execute_query("""
-                    INSERT INTO diagnosi (
-                        paziente_id,
-                        medico_id,
-                        data_diagnosi,
-                        diagnosi,
-                        note
+                with col1:
+                    tipo = st.selectbox(
+                        "Tipo",
+                        ["Non specificato", "Principale", "Secondaria",
+                         "Sospetta", "Confermata"]
                     )
-                    VALUES (?, ?, ?, ?, ?)
-                """, (
-                    pazienti_dict[paziente_selezionato],
-                    medico_id,
-                    data_diagnosi.strftime("%Y-%m-%d"),
-                    diagnosi,
-                    note
-                ))
 
-                st.success("Diagnosi registrata.")
-                st.rerun()
+                with col2:
+                    gravita = st.selectbox(
+                        "Gravità",
+                        ["Non specificata", "Lieve", "Moderata",
+                         "Grave", "Critica"]
+                    )
 
-    st.divider()
+                note = st.text_area("Note")
 
-    st.subheader("Diagnosi registrate")
+                salva = st.form_submit_button(
+                    "Salva diagnosi",
+                    use_container_width=True,
+                    type="primary"
+                )
 
-    diagnosi_rows = fetch_all("""
-        SELECT
-            d.id,
-            p.nome || ' ' || p.cognome AS paziente,
-            m.nome || ' ' || m.cognome AS medico,
-            d.data_diagnosi,
-            d.diagnosi,
-            d.note
-        FROM diagnosi d
-        JOIN pazienti p ON p.id = d.paziente_id
-        LEFT JOIN medici m ON m.id = d.medico_id
-        ORDER BY d.id DESC
-    """)
+            if salva:
+                if not descrizione.strip():
+                    st.error("La descrizione della diagnosi è obbligatoria.")
+                else:
+                    pid = pazienti[paziente_label]
+                    mid = medici[medico_label] if medico_label != "Nessuno" else None
 
-    if diagnosi_rows:
+                    execute_query(
+                        """
+                        INSERT INTO diagnosi (
+                            paziente_id, medico_id, data_diagnosi, codice_icd,
+                            descrizione, tipo, gravita, note
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            pid, mid, data_diagnosi.isoformat(),
+                            codice_icd.strip() or None,
+                            descrizione.strip(),
+                            None if tipo == "Non specificato" else tipo,
+                            None if gravita == "Non specificata" else gravita,
+                            note.strip() or None
+                        )
+                    )
 
-        import pandas as pd
-
-        df = pd.DataFrame(
-            [dict(row) for row in diagnosi_rows]
-        )
-
-        df.columns = [
-            "ID",
-            "Paziente",
-            "Medico",
-            "Data",
-            "Diagnosi",
-            "Note"
-        ]
-
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    else:
-        st.info("Nessuna diagnosi registrata.")
+                    st.success("Diagnosi salvata.")
+                    st.rerun()
 
 
 # ============================================================
@@ -1108,148 +1160,91 @@ elif pagina == "Diagnosi":
 
 elif pagina == "Prognosi":
 
-    st.title("Prognosi")
+    st.header("Prognosi")
+    st.caption("Registrazione e consultazione delle prognosi.")
 
-    pazienti = fetch_all("""
-        SELECT id, nome, cognome
-        FROM pazienti
-        ORDER BY cognome, nome
-    """)
+    tab1, tab2 = st.tabs(["Elenco prognosi", "Nuova prognosi"])
 
-    medici = fetch_all("""
-        SELECT id, nome, cognome
-        FROM medici
-        ORDER BY cognome, nome
-    """)
+    with tab1:
+        df = query_df("""
+            SELECT
+                pr.id AS ID,
+                p.cognome || ' ' || p.nome AS Paziente,
+                m.cognome || ' ' || m.nome AS Medico,
+                pr.data_prognosi AS Data,
+                pr.descrizione AS Descrizione,
+                pr.esito_previsto AS "Esito previsto",
+                pr.durata_stimata AS Durata
+            FROM prognosi pr
+            LEFT JOIN pazienti p ON pr.paziente_id = p.id
+            LEFT JOIN medici m ON pr.medico_id = m.id
+            ORDER BY pr.data_prognosi DESC
+        """)
 
-    if not pazienti:
-        st.warning(
-            "Devi prima registrare almeno un paziente."
-        )
-    else:
+        if df.empty:
+            st.info("Nessuna prognosi registrata.")
+        else:
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-        pazienti_dict = {
-            f"{p['cognome']} {p['nome']} — ID {p['id']}": p["id"]
-            for p in pazienti
-        }
+    with tab2:
+        pazienti = get_paziente_options()
+        medici = get_medico_options()
 
-        medici_dict = {
-            f"{m['cognome']} {m['nome']} — ID {m['id']}": m["id"]
-            for m in medici
-        }
+        if not pazienti:
+            st.warning("Inserisci prima un paziente.")
+        else:
+            with st.form("nuova_prognosi"):
+                paziente_label = st.selectbox("Paziente *", list(pazienti.keys()))
+                medico_label = st.selectbox(
+                    "Medico",
+                    ["Nessuno"] + list(medici.keys())
+                )
+                data_prognosi = st.date_input(
+                    "Data prognosi",
+                    value=date.today(),
+                    format="DD/MM/YYYY"
+                )
+                descrizione = st.text_area("Descrizione prognosi *")
+                esito = st.selectbox(
+                    "Esito previsto",
+                    ["Non specificato", "Favorevole", "Riservato",
+                     "Incerto", "Sfavorevole"]
+                )
+                durata = st.text_input("Durata stimata")
+                note = st.text_area("Note")
 
-        paziente_selezionato = st.selectbox(
-            "Paziente",
-            list(pazienti_dict.keys()),
-            key="prognosi_paziente"
-        )
+                salva = st.form_submit_button(
+                    "Salva prognosi",
+                    use_container_width=True,
+                    type="primary"
+                )
 
-        medico_options = ["Nessun medico"] + list(
-            medici_dict.keys()
-        )
+            if salva:
+                if not descrizione.strip():
+                    st.error("La descrizione è obbligatoria.")
+                else:
+                    pid = pazienti[paziente_label]
+                    mid = medici[medico_label] if medico_label != "Nessuno" else None
 
-        medico_selezionato = st.selectbox(
-            "Medico / Operatore",
-            medico_options,
-            key="prognosi_medico"
-        )
-
-        data_prognosi = st.date_input(
-            "Data prognosi",
-            value=date.today(),
-            format="DD/MM/YYYY"
-        )
-
-        prognosi = st.text_area(
-            "Prognosi *",
-            height=120
-        )
-
-        note = st.text_area(
-            "Note",
-            height=100
-        )
-
-        if st.button(
-            "Registra prognosi",
-            type="primary",
-            use_container_width=True
-        ):
-
-            if not prognosi:
-                st.error("Inserisci la prognosi.")
-            else:
-
-                medico_id = None
-
-                if medico_selezionato != "Nessun medico":
-                    medico_id = medici_dict[
-                        medico_selezionato
-                    ]
-
-                execute_query("""
-                    INSERT INTO prognosi (
-                        paziente_id,
-                        medico_id,
-                        data_prognosi,
-                        prognosi,
-                        note
+                    execute_query(
+                        """
+                        INSERT INTO prognosi (
+                            paziente_id, medico_id, data_prognosi, descrizione,
+                            esito_previsto, durata_stimata, note
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            pid, mid, data_prognosi.isoformat(),
+                            descrizione.strip(),
+                            None if esito == "Non specificato" else esito,
+                            durata.strip() or None,
+                            note.strip() or None
+                        )
                     )
-                    VALUES (?, ?, ?, ?, ?)
-                """, (
-                    pazienti_dict[paziente_selezionato],
-                    medico_id,
-                    data_prognosi.strftime("%Y-%m-%d"),
-                    prognosi,
-                    note
-                ))
 
-                st.success("Prognosi registrata.")
-                st.rerun()
-
-    st.divider()
-
-    st.subheader("Prognosi registrate")
-
-    prognosi_rows = fetch_all("""
-        SELECT
-            pr.id,
-            p.nome || ' ' || p.cognome AS paziente,
-            m.nome || ' ' || m.cognome AS medico,
-            pr.data_prognosi,
-            pr.prognosi,
-            pr.note
-        FROM prognosi pr
-        JOIN pazienti p ON p.id = pr.paziente_id
-        LEFT JOIN medici m ON m.id = pr.medico_id
-        ORDER BY pr.id DESC
-    """)
-
-    if prognosi_rows:
-
-        import pandas as pd
-
-        df = pd.DataFrame(
-            [dict(row) for row in prognosi_rows]
-        )
-
-        df.columns = [
-            "ID",
-            "Paziente",
-            "Medico",
-            "Data",
-            "Prognosi",
-            "Note"
-        ]
-
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    else:
-        st.info("Nessuna prognosi registrata.")
+                    st.success("Prognosi salvata.")
+                    st.rerun()
 
 
 # ============================================================
@@ -1258,190 +1253,119 @@ elif pagina == "Prognosi":
 
 elif pagina == "Terapie":
 
-    st.title("Terapie")
+    st.header("Terapie e Trattamenti")
+    st.caption("Gestione dei trattamenti associati ai pazienti.")
 
-    pazienti = fetch_all("""
-        SELECT id, nome, cognome
-        FROM pazienti
-        ORDER BY cognome, nome
-    """)
+    tab1, tab2 = st.tabs(["Elenco terapie", "Nuova terapia"])
 
-    medici = fetch_all("""
-        SELECT id, nome, cognome
-        FROM medici
-        ORDER BY cognome, nome
-    """)
+    with tab1:
+        df = query_df("""
+            SELECT
+                t.id AS ID,
+                p.cognome || ' ' || p.nome AS Paziente,
+                m.cognome || ' ' || m.nome AS Medico,
+                t.data_inizio AS "Data inizio",
+                t.data_fine AS "Data fine",
+                t.farmaco_o_trattamento AS Trattamento,
+                t.dosaggio AS Dosaggio,
+                t.frequenza AS Frequenza
+            FROM terapie t
+            LEFT JOIN pazienti p ON t.paziente_id = p.id
+            LEFT JOIN medici m ON t.medico_id = m.id
+            ORDER BY t.data_inizio DESC
+        """)
 
-    if not pazienti:
-        st.warning(
-            "Devi prima registrare almeno un paziente."
-        )
-    else:
+        if df.empty:
+            st.info("Nessuna terapia registrata.")
+        else:
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-        pazienti_dict = {
-            f"{p['cognome']} {p['nome']} — ID {p['id']}": p["id"]
-            for p in pazienti
-        }
+    with tab2:
+        pazienti = get_paziente_options()
+        medici = get_medico_options()
 
-        medici_dict = {
-            f"{m['cognome']} {m['nome']} — ID {m['id']}": m["id"]
-            for m in medici
-        }
-
-        paziente_selezionato = st.selectbox(
-            "Paziente",
-            list(pazienti_dict.keys()),
-            key="terapia_paziente"
-        )
-
-        medico_options = ["Nessun medico"] + list(
-            medici_dict.keys()
-        )
-
-        medico_selezionato = st.selectbox(
-            "Medico / Operatore",
-            medico_options,
-            key="terapia_medico"
-        )
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            data_inizio = st.date_input(
-                "Data inizio",
-                value=date.today(),
-                format="DD/MM/YYYY"
-            )
-
-        with c2:
-            data_fine = st.date_input(
-                "Data fine",
-                value=None,
-                format="DD/MM/YYYY"
-            )
-
-        terapia = st.text_area(
-            "Terapia *",
-            height=120
-        )
-
-        dosaggio = st.text_input(
-            "Dosaggio"
-        )
-
-        note = st.text_area(
-            "Note",
-            height=100
-        )
-
-        if st.button(
-            "Registra terapia",
-            type="primary",
-            use_container_width=True
-        ):
-
-            if not terapia:
-                st.error("Inserisci la terapia.")
-            else:
-
-                medico_id = None
-
-                if medico_selezionato != "Nessun medico":
-                    medico_id = medici_dict[
-                        medico_selezionato
-                    ]
-
-                data_inizio_str = data_inizio.strftime(
-                    "%Y-%m-%d"
+        if not pazienti:
+            st.warning("Inserisci prima un paziente.")
+        else:
+            with st.form("nuova_terapia"):
+                paziente_label = st.selectbox("Paziente *", list(pazienti.keys()))
+                medico_label = st.selectbox(
+                    "Medico",
+                    ["Nessuno"] + list(medici.keys())
                 )
 
-                data_fine_str = None
+                col1, col2 = st.columns(2)
 
-                if data_fine:
-                    data_fine_str = data_fine.strftime(
-                        "%Y-%m-%d"
+                with col1:
+                    data_inizio = st.date_input(
+                        "Data inizio",
+                        value=date.today(),
+                        format="DD/MM/YYYY"
                     )
 
-                execute_query("""
-                    INSERT INTO terapie (
-                        paziente_id,
-                        medico_id,
-                        data_inizio,
-                        data_fine,
-                        terapia,
-                        dosaggio,
-                        note
+                with col2:
+                    data_fine = st.date_input(
+                        "Data fine",
+                        value=None,
+                        format="DD/MM/YYYY"
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    pazienti_dict[paziente_selezionato],
-                    medico_id,
-                    data_inizio_str,
-                    data_fine_str,
-                    terapia,
-                    dosaggio,
-                    note
-                ))
 
-                st.success("Terapia registrata.")
-                st.rerun()
+                trattamento = st.text_input("Farmaco / Trattamento *")
 
-    st.divider()
+                col1, col2 = st.columns(2)
 
-    st.subheader("Terapie registrate")
+                with col1:
+                    dosaggio = st.text_input("Dosaggio")
 
-    terapie_rows = fetch_all("""
-        SELECT
-            t.id,
-            p.nome || ' ' || p.cognome AS paziente,
-            m.nome || ' ' || m.cognome AS medico,
-            t.data_inizio,
-            t.data_fine,
-            t.terapia,
-            t.dosaggio,
-            t.note
-        FROM terapie t
-        JOIN pazienti p ON p.id = t.paziente_id
-        LEFT JOIN medici m ON m.id = t.medico_id
-        ORDER BY t.id DESC
-    """)
+                with col2:
+                    frequenza = st.text_input("Frequenza")
 
-    if terapie_rows:
+                note = st.text_area("Note")
 
-        import pandas as pd
+                salva = st.form_submit_button(
+                    "Salva terapia",
+                    use_container_width=True,
+                    type="primary"
+                )
 
-        df = pd.DataFrame(
-            [dict(row) for row in terapie_rows]
-        )
+            if salva:
+                if not trattamento.strip():
+                    st.error("Il trattamento è obbligatorio.")
+                else:
+                    pid = pazienti[paziente_label]
+                    mid = medici[medico_label] if medico_label != "Nessuno" else None
 
-        df.columns = [
-            "ID",
-            "Paziente",
-            "Medico",
-            "Inizio",
-            "Fine",
-            "Terapia",
-            "Dosaggio",
-            "Note"
-        ]
+                    execute_query(
+                        """
+                        INSERT INTO terapie (
+                            paziente_id, medico_id, data_inizio, data_fine,
+                            farmaco_o_trattamento, dosaggio, frequenza, note
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            pid, mid,
+                            data_inizio.isoformat(),
+                            data_fine.isoformat() if data_fine else None,
+                            trattamento.strip(),
+                            dosaggio.strip() or None,
+                            frequenza.strip() or None,
+                            note.strip() or None
+                        )
+                    )
 
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-    else:
-        st.info("Nessuna terapia registrata.")
+                    st.success("Terapia salvata.")
+                    st.rerun()
 
 
 # ============================================================
-# RICERCA / CARTELLE
+# RICERCA / CARTELLE CLINICHE
 # ============================================================
 
 elif pagina == "Ricerca / Cartelle":
 
-    st.title("Ricerca / Cartelle cliniche")
+    st.header("Ricerca e Cartelle Cliniche")
+    st.caption("Ricerca rapida e consultazione della documentazione del paziente.")
 
     ricerca = st.text_input(
         "Cerca paziente",
@@ -1449,259 +1373,185 @@ elif pagina == "Ricerca / Cartelle":
     )
 
     if ricerca:
-
-        pazienti = fetch_all("""
+        df = query_df(
+            """
             SELECT *
             FROM pazienti
-            WHERE
-                nome LIKE ?
-                OR cognome LIKE ?
-                OR codice_fiscale LIKE ?
+            WHERE nome LIKE ?
+               OR cognome LIKE ?
+               OR codice_fiscale LIKE ?
             ORDER BY cognome, nome
-        """, (
-            f"%{ricerca}%",
-            f"%{ricerca}%",
-            f"%{ricerca}%"
-        ))
-
-        if not pazienti:
-            st.warning(
-                "Nessun paziente trovato."
+            """,
+            (
+                f"%{ricerca}%",
+                f"%{ricerca}%",
+                f"%{ricerca.upper()}%"
             )
+        )
 
-        for paziente in pazienti:
+        if df.empty:
+            st.warning("Nessun paziente trovato.")
+        else:
+            st.success(f"Trovati {len(df)} pazienti.")
 
-            st.markdown(
-                f"""
-                <div class="clinical-card">
-                    <h3>
-                        {paziente["nome"]} {paziente["cognome"]}
-                    </h3>
-                    <p>
-                        <strong>ID:</strong> {paziente["id"]}
-                    </p>
-                    <p>
-                        <strong>Codice fiscale:</strong>
-                        {paziente["codice_fiscale"] or "-"}
-                    </p>
-                    <p>
-                        <strong>Data di nascita:</strong>
-                        {paziente["data_nascita"] or "-"}
-                    </p>
-                    <p>
-                        <strong>Telefono:</strong>
-                        {paziente["telefono"] or "-"}
-                    </p>
-                    <p>
-                        <strong>Email:</strong>
-                        {paziente["email"] or "-"}
-                    </p>
-                    <p>
-                        <strong>Indirizzo:</strong>
-                        {paziente["indirizzo"] or "-"}
-                    </p>
-                    <p>
-                        <strong>Città:</strong>
-                        {paziente["citta"] or "-"}
-                    </p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            options = {
+                f"{r['cognome']} {r['nome']} — ID {r['id']}": int(r["id"])
+                for _, r in df.iterrows()
+            }
 
-            paziente_id = paziente["id"]
+            scelta = st.selectbox("Seleziona paziente", list(options.keys()))
+            paziente_id = options[scelta]
 
-            # AMMISSIONI
-
-            st.subheader("Ammissioni")
-
-            ammissioni = fetch_all("""
-                SELECT
-                    a.id,
-                    a.data_ingresso,
-                    a.data_uscita,
-                    a.reparto,
-                    a.motivo,
-                    m.nome || ' ' || m.cognome AS medico
-                FROM ammissioni a
-                LEFT JOIN medici m ON m.id = a.medico_id
-                WHERE a.paziente_id = ?
-                ORDER BY a.id DESC
-            """, (paziente_id,))
-
-            if ammissioni:
-
-                import pandas as pd
-
-                df = pd.DataFrame(
-                    [dict(row) for row in ammissioni]
-                )
-
-                df.columns = [
-                    "ID",
-                    "Ingresso",
-                    "Uscita",
-                    "Reparto",
-                    "Motivo",
-                    "Medico"
-                ]
-
-                st.dataframe(
-                    df,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-            else:
-                st.caption(
-                    "Nessuna ammissione registrata."
-                )
-
-            # DIAGNOSI
-
-            st.subheader("Diagnosi")
-
-            diagnosi = fetch_all("""
-                SELECT
-                    d.id,
-                    d.data_diagnosi,
-                    d.diagnosi,
-                    d.note,
-                    m.nome || ' ' || m.cognome AS medico
-                FROM diagnosi d
-                LEFT JOIN medici m ON m.id = d.medico_id
-                WHERE d.paziente_id = ?
-                ORDER BY d.id DESC
-            """, (paziente_id,))
-
-            if diagnosi:
-
-                import pandas as pd
-
-                df = pd.DataFrame(
-                    [dict(row) for row in diagnosi]
-                )
-
-                df.columns = [
-                    "ID",
-                    "Data",
-                    "Diagnosi",
-                    "Note",
-                    "Medico"
-                ]
-
-                st.dataframe(
-                    df,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-            else:
-                st.caption(
-                    "Nessuna diagnosi registrata."
-                )
-
-            # PROGNOSI
-
-            st.subheader("Prognosi")
-
-            prognosi = fetch_all("""
-                SELECT
-                    pr.id,
-                    pr.data_prognosi,
-                    pr.prognosi,
-                    pr.note,
-                    m.nome || ' ' || m.cognome AS medico
-                FROM prognosi pr
-                LEFT JOIN medici m ON m.id = pr.medico_id
-                WHERE pr.paziente_id = ?
-                ORDER BY pr.id DESC
-            """, (paziente_id,))
-
-            if prognosi:
-
-                import pandas as pd
-
-                df = pd.DataFrame(
-                    [dict(row) for row in prognosi]
-                )
-
-                df.columns = [
-                    "ID",
-                    "Data",
-                    "Prognosi",
-                    "Note",
-                    "Medico"
-                ]
-
-                st.dataframe(
-                    df,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-            else:
-                st.caption(
-                    "Nessuna prognosi registrata."
-                )
-
-            # TERAPIE
-
-            st.subheader("Terapie")
-
-            terapie = fetch_all("""
-                SELECT
-                    t.id,
-                    t.data_inizio,
-                    t.data_fine,
-                    t.terapia,
-                    t.dosaggio,
-                    t.note,
-                    m.nome || ' ' || m.cognome AS medico
-                FROM terapie t
-                LEFT JOIN medici m ON m.id = t.medico_id
-                WHERE t.paziente_id = ?
-                ORDER BY t.id DESC
-            """, (paziente_id,))
-
-            if terapie:
-
-                import pandas as pd
-
-                df = pd.DataFrame(
-                    [dict(row) for row in terapie]
-                )
-
-                df.columns = [
-                    "ID",
-                    "Inizio",
-                    "Fine",
-                    "Terapia",
-                    "Dosaggio",
-                    "Note",
-                    "Medico"
-                ]
-
-                st.dataframe(
-                    df,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-            else:
-                st.caption(
-                    "Nessuna terapia registrata."
-                )
+            paziente = query_df(
+                "SELECT * FROM pazienti WHERE id = ?",
+                (paziente_id,)
+            ).iloc[0]
 
             st.divider()
+
+            st.subheader(
+                f"{paziente['nome']} {paziente['cognome']}"
+            )
+
+            st.markdown("### Dati anagrafici")
+
+            c1, c2, c3 = st.columns(3)
+
+            c1.write(f"**Data di nascita:** {format_date(paziente['data_nascita'])}")
+            c2.write(f"**Sesso:** {paziente['sesso'] or '—'}")
+            c3.write(f"**Codice fiscale:** {paziente['codice_fiscale'] or '—'}")
+
+            c1, c2, c3 = st.columns(3)
+
+            c1.write(f"**Telefono:** {paziente['telefono'] or '—'}")
+            c2.write(f"**Email:** {paziente['email'] or '—'}")
+            c3.write(f"**Città:** {paziente['citta'] or '—'}")
+
+            st.write(f"**Indirizzo:** {paziente['indirizzo'] or '—'}")
+
+            st.markdown("### Informazioni cliniche")
+
+            st.write(
+                f"**Gruppo sanguigno:** {paziente['gruppo_sanguigno'] or '—'}"
+            )
+            st.write(
+                f"**Allergie:** {paziente['allergie'] or 'Nessuna informazione'}"
+            )
+            st.write(
+                f"**Patologie pregresse:** "
+                f"{paziente['patologie_pregresse'] or 'Nessuna informazione'}"
+            )
+            st.write(f"**Note:** {paziente['note'] or '—'}")
+
+            st.divider()
+
+            st.markdown("### Ammissioni / Degenza")
+
+            ammissioni = query_df(
+                """
+                SELECT
+                    a.id AS ID,
+                    a.data_ingresso AS "Ingresso",
+                    a.data_uscita AS "Uscita",
+                    a.reparto AS Reparto,
+                    a.stanza AS Stanza,
+                    a.motivo_ricovero AS "Motivo",
+                    a.stato AS Stato,
+                    m.cognome || ' ' || m.nome AS Medico
+                FROM ammissioni a
+                LEFT JOIN medici m ON a.medico_id = m.id
+                WHERE a.paziente_id = ?
+                ORDER BY a.data_ingresso DESC
+                """,
+                (paziente_id,)
+            )
+
+            if ammissioni.empty:
+                st.info("Nessuna ammissione.")
+            else:
+                st.dataframe(ammissioni, use_container_width=True, hide_index=True)
+
+            st.markdown("### Diagnosi")
+
+            diagnosi = query_df(
+                """
+                SELECT
+                    d.id AS ID,
+                    d.data_diagnosi AS Data,
+                    d.codice_icd AS "ICD-10",
+                    d.descrizione AS Descrizione,
+                    d.tipo AS Tipo,
+                    d.gravita AS Gravità,
+                    m.cognome || ' ' || m.nome AS Medico
+                FROM diagnosi d
+                LEFT JOIN medici m ON d.medico_id = m.id
+                WHERE d.paziente_id = ?
+                ORDER BY d.data_diagnosi DESC
+                """,
+                (paziente_id,)
+            )
+
+            if diagnosi.empty:
+                st.info("Nessuna diagnosi.")
+            else:
+                st.dataframe(diagnosi, use_container_width=True, hide_index=True)
+
+            st.markdown("### Prognosi")
+
+            prognosi = query_df(
+                """
+                SELECT
+                    pr.id AS ID,
+                    pr.data_prognosi AS Data,
+                    pr.descrizione AS Descrizione,
+                    pr.esito_previsto AS "Esito previsto",
+                    pr.durata_stimata AS Durata,
+                    m.cognome || ' ' || m.nome AS Medico
+                FROM prognosi pr
+                LEFT JOIN medici m ON pr.medico_id = m.id
+                WHERE pr.paziente_id = ?
+                ORDER BY pr.data_prognosi DESC
+                """,
+                (paziente_id,)
+            )
+
+            if prognosi.empty:
+                st.info("Nessuna prognosi.")
+            else:
+                st.dataframe(prognosi, use_container_width=True, hide_index=True)
+
+            st.markdown("### Terapie")
+
+            terapie = query_df(
+                """
+                SELECT
+                    t.id AS ID,
+                    t.data_inizio AS "Inizio",
+                    t.data_fine AS "Fine",
+                    t.farmaco_o_trattamento AS Trattamento,
+                    t.dosaggio AS Dosaggio,
+                    t.frequenza AS Frequenza,
+                    m.cognome || ' ' || m.nome AS Medico
+                FROM terapie t
+                LEFT JOIN medici m ON t.medico_id = m.id
+                WHERE t.paziente_id = ?
+                ORDER BY t.data_inizio DESC
+                """,
+                (paziente_id,)
+            )
+
+            if terapie.empty:
+                st.info("Nessuna terapia.")
+            else:
+                st.dataframe(terapie, use_container_width=True, hide_index=True)
 
 
 # ============================================================
 # FOOTER
 # ============================================================
 
-st.markdown("""
-<div class="footer">
-    Gestione Clinica · Sistema informativo clinico · v1.0
-</div>
-""", unsafe_allow_html=True)
+st.divider()
+
+st.markdown(
+    '<div class="footer">Gestione Clinica · Sistema informativo clinico · v1.0</div>',
+    unsafe_allow_html=True
